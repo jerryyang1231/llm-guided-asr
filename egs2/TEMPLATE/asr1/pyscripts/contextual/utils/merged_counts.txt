@@ -1,0 +1,298 @@
+玉山 5485
+放款 2527
+台灣 1487
+IT 1159
+中國 997
+財富管理 954
+NIM 705
+Spread 615
+SU 586
+玉山金控 576
+SME 513
+亞洲 441
+個金 409
+央行 380
+basis point 363
+美國 338
+BU 306
+投資法人 300
+利差 291
+ROE 282
+cost income ratio 276
+IR 273
+淨手續費 255
+淨收益 255
+企金 243
+Mortgage 234
+存放比 226
+EPS 210
+資本適足率 195
+OBU 180
+fee income 174
+消金 171
+BP 168
+IP 168
+ROA 168
+NPL Ratio 165
+淨值 159
+AC 154
+RM 153
+經濟成長率 153
+東莞 149
+新加坡 147
+ESG 144
+YOY 144
+聯貸 144
+VP 135
+智慧金融 135
+wealth management 134
+東南亞 132
+Fixed Income 129
+歐洲 123
+雪梨 123
+法金 114
+市占率 111
+香港 108
+日本 103
+IF 102
+預放 102
+創投 99
+法說會 99
+民營 92
+corporate banking 90
+GDP 87
+手收 87
+澳洲 84
+FED 78
+金管會 78
+越南 75
+南山 73
+國泰 73
+LDR 72
+先進 72
+主計處 67
+consumer banking 63
+數位轉型 63
+稅後淨利 63
+GP 60
+INF 60
+綠色金融 60
+美林 60
+雙重槓桿比率 60
+AUM 54
+CAR Ratio 54
+JP 54
+NCD 54
+OCI 54
+深圳 54
+通貨膨脹 54
+AO 51
+BIS Ratio 51
+Coverage Ratio 51
+VC 51
+斷鏈 51
+貨幣政策 49
+BOA 48
+ITE 48
+KYC 48
+Large Corporate 48
+Net Profit 48
+PCHOME 48
+SWAP 48
+capital gain 48
+holding company 48
+pi錢包 48
+twA Plus 48
+廣州 48
+玉山wallet 48
+道瓊永續指數 48
+中壢 45
+企金法 45
+全家 45
+花旗 43
+C I Ratio 42
+淨提存 42
+Asiamoney 39
+CPI 39
+E指貸 39
+IPO 39
+high single digit 39
+joseph 39
+mark to market 39
+other income 39
+俄國 39
+指數型 39
+數金處 39
+智金 39
+殖利率 39
+瑞士信貸 39
+華南 39
+財管 39
+SASB 38
+Best Managed Company in Asia 36
+Carrefour家樂福 36
+DCI 36
+EPN 36
+FVOCI 36
+FVPL 36
+Finance Asia 36
+Formosa bond 36
+GIV 36
+GPS 36
+GRI 36
+GRM 36
+Global Finance 36
+IBC 36
+ICU 36
+IDC 36
+IMO國際海事組織 36
+IRD 36
+Jasons market 36
+KGI 36
+KPI 36
+LTV 36
+MGM 36
+MSCI ESG Ratings 36
+MSEI 36
+OCD 36
+OPEC 36
+PBU 36
+PS ratio 36
+PVC 36
+RE一百 36
+S&P 36
+SBT 36
+SDT 36
+SMP Global 36
+SOP 36
+Sustainalytics 36
+TCFD 36
+UBF 36
+UBear 36
+UPC 36
+VOA 36
+ban sanction 36
+buy now pay later 36
+corporate governance Asia 36
+cost funding 36
+covid nineteen 36
+current ratio 36
+customer oriented 36
+data driven 36
+depends on 36
+e Fingo 36
+financial consultant 36
+forbes bank 36
+high base 36
+inflation rate 36
+ixml 36
+morgan stanley jp 36
+operating cost 36
+operating expense 36
+pi信用卡 36
+price in 36
+prime banking 36
+private banker 36
+so not so good 36
+straight bond 36
+supply chain 36
+the Asian Banker 36
+the banker 36
+世界氣候峰會 36
+中國人壽 36
+亞洲四小龍 36
+全盈PLUS PAY 36
+北富銀 36
+半導體五G 36
+南韓 36
+台大 36
+史密斯 36
+吳宏斌 36
+國泰證券 36
+場景金融 36
+增資緘默期 36
+富比士 36
+張智星 36
+拜登 36
+日盛 36
+曝險 36
+曼谷 36
+東協 36
+松江 36
+柯治宏 36
+毛手收 36
+永續發展委員會 36
+泰國 36
+淨零碳排 36
+清華 36
+溫學華 36
+烏克蘭 36
+熔斷 36
+玉輝 36
+生技股 36
+福岡 36
+紓困振興 36
+終端消費 36
+美林證券 36
+聯合國 36
+聯準會 36
+育輝 36
+胡志明 36
+華爾街 36
+裕民 36
+許誠洲 36
+關聯稅制 36
+離岸風電 36
+Apple 33
+CSR 33
+布里斯本 33
+淨利收 33
+DJSI 30
+net revenue 30
+摩根大通 30
+謝冠仁 30
+DPS 27
+PML 27
+risk management 27
+南山廣場 27
+英國 27
+國民旅遊卡 26
+CEO 24
+FX 24
+MMA 24
+fair value 24
+川普 24
+統一 24
+財金處 24
+南山人壽 22
+稅後盈餘 22
+IMF 21
+Magi 21
+Mobile Banking 21
+OSU 21
+台新 21
+富邦 21
+淨手收 21
+玉證 21
+長安 21
+元大 19
+UBS 18
+fifty fifty 18
+market share 18
+三道防線 18
+停售效應 18
+永豐 18
+陳美滿 18
+預期放款比率 18
+PMI 15
+Q one 15
+Year to date 15
+powerpoint 15
+黃男州 15
+外幣存放比 12
+智能金融處 12
+mortgage loan 9
+央企 9
+逾放比 9
+IHS 0
+風險管理委會 0
