@@ -1,6 +1,8 @@
 batch_type: numel
-batch_bins: 64000000
-accum_grad: 2
+# batch_bins: 64000000
+batch_bins: 32000000
+# accum_grad: 2
+accum_grad: 4
 max_epoch: 50
 patience: none
 init: none
@@ -84,4 +86,4 @@ specaug_conf:
 
 use_wandb: true           
 wandb_project: llm_asr      
-wandb_name: llm_guided_asr_esun_baseline_qwen2
+wandb_name: librispeech_100_baseline_qwen2

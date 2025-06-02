@@ -848,14 +848,14 @@ def inference(
             # N-best list of (text, token, token_int, hyp_object)
             try:
                 # original
-                results = speech2text(**batch)
-                # # --- 注入當前的 utterance ID & biasing dict 給 decoder scorer ---
-                # utt_id = keys[0]
-                # decoder = speech2text.asr_model.decoder
-                # # 確保 decoder 有存 prompt 表
-                # decoder.biasing_words_dict = speech2text.asr_model.biasing_words_dict
-                # decoder.current_utt_id = utt_id
                 # results = speech2text(**batch)
+                # --- 注入當前的 utterance ID & biasing dict 給 decoder scorer ---
+                utt_id = keys[0]
+                decoder = speech2text.asr_model.decoder
+                # 確保 decoder 有存 prompt 表
+                decoder.biasing_words_dict = speech2text.asr_model.biasing_words_dict
+                decoder.current_utt_id = utt_id
+                results = speech2text(**batch)
             except TooShortUttError as e:
                 logging.warning(f"Utterance {keys} {e}")
                 hyp = Hypothesis(score=0.0, scores={}, states={}, yseq=[])

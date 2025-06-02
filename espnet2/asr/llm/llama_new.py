@@ -52,6 +52,7 @@ class Llama(AbsLLM):
         if template_prompt:
             # 先把整個 prompt tokenize 成 token list
             template_prompt_tokens = self.tokenizer.tokenize(template_prompt)
+
             # 我們要找到兩個占位符 ((HYP)) 和 ((BIAS)) 在 token list 裡的位置
             # Llama2 tokenize 會把 "((HYP))" 拆成長度 5 的 tokens，Llama3 則拆成長度 4
             len_hyp_indicator = 5 if self.is_llama2 else 4

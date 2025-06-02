@@ -43,6 +43,7 @@ egs*/*/*/downloads
 egs*/*/*/dump
 egs*/*/*/enhan
 egs*/*/*/exp
+egs*/*/*/exp1
 egs*/*/*/debug
 egs*/*/*/fbank
 egs*/*/*/mfcc

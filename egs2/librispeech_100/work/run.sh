@@ -12,13 +12,16 @@ export CUDA_VISIBLE_DEVICES=0
 # llama3.1: --hugging_face_model_name_or_path "meta-llama/Llama-3.1-8B"
 # llama3.2: --hugging_face_model_name_or_path "meta-llama/Llama-3.2-1B"
 hugging_face_model_name_or_path="meta-llama/Llama-2-7b-hf"
+# hugging_face_model_name_or_path="Qwen/Qwen2.5-0.5B"
 
 train_set="train_clean_100"
 valid_set="dev"
 test_sets="test_clean test_other dev_clean dev_other"
 
-asr_config=conf/tuning/train_asr_conformer_llama2_vocab.yaml
-# asr_config=conf/tuning/train_asr+llama2_conformer.yaml
+# asr_config=conf/tuning/train_asr_conformer_llama2_vocab.yaml
+asr_config=conf/tuning/train_asr+llama2_conformer.yaml
+# asr_config=conf/tuning/train_asr_conformer_qwen2_vocab.yaml
+
 # inference_config=conf/tuning/decode_bs10_ctc0.3.yaml
 inference_config=conf/tuning/decode_bs1_ctc0.3.yaml
 
@@ -32,9 +35,9 @@ done
 
 ./asr.sh \
     --lang en \
-    --ngpu 1 \
+    --ngpu 0 \
     --nj 16 \
-    --gpu_inference true \
+    --gpu_inference false \
     --inference_nj 1 \
     --token_type hugging_face \
     --hugging_face_model_name_or_path "${hugging_face_model_name_or_path}" \

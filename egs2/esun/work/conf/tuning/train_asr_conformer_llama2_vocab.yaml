@@ -47,9 +47,9 @@ model_conf:
     ctc_weight: 0.3
     lsm_weight: 0.1
     length_normalized_loss: false
-    sym_blank: "<unk>" #
-    sym_sos: "<s>" #
-    sym_eos: "</s>" #
+    # sym_blank: "<unk>" #
+    # sym_sos: "<s>" #
+    # sym_eos: "</s>" #
 
 frontend_conf:
     n_fft: 512
@@ -84,4 +84,4 @@ specaug_conf:
 
 use_wandb: true           
 wandb_project: llm_asr      
-wandb_name: llm_guided_asr_esun_baseline_llama2
+wandb_name: llm_guided_asr_esun_baseline_retry_llama2_take2

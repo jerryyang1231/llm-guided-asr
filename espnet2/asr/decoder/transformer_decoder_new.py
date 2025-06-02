@@ -1011,6 +1011,71 @@ class LLMGuidedTransformerDecoder(BaseTransformerDecoder):
 
         self.use_cache = False
 
+    # def forward(
+    #     self,
+    #     hs_pad: torch.Tensor,      # (B, T_enc, D): encoder 輸出的隱藏向量 (padding 過)
+    #     hlens: torch.Tensor,       # (B,): 每句的實際長度（encoder）
+    #     ys_in_pad: torch.Tensor,   # (B, T_dec): decoder 的輸入 token id（padding 過）
+    #     ys_in_lens: torch.Tensor,  # (B,): 每句 decoder 輸入的實際長度
+    #     biasing_words: Optional[List[str]] = None,
+    # ) -> Tuple[torch.Tensor, torch.Tensor]:
+    #     B = hs_pad.size(0)
+
+    #     # --- 1. 準備 LLM 輸入文字序列 ---
+    #     if biasing_words is not None:
+    #         assert len(biasing_words) == B, "Length of biasing_words must match batch size"
+    #         hyps = biasing_words
+    #         hyps_lengths = hlens.new([-1] * B)  # -1 = use string length internally by LLM
+    #     else:
+    #         # 原始版本的 CTC 解碼取得 hyps
+    #         lpz = self.ctc.argmax(hs_pad).data  # (B, T_enc)
+    #         hyps = []
+    #         hyps_lengths = []
+    #         for l in lpz:                               # 每個 batch 項目
+    #             y_hat = torch.unique_consecutive(l)     # 去掉連續重複
+    #             y = y_hat[y_hat != 0]                   # 刪除 blank id=0
+
+    #             if self.ctc_tokenizer is not None:
+    #             # 如果有 tokenizer，先把 id -> token -> 字串
+    #                 hyps.append(
+    #                     self.ctc_tokenizer.tokens2text(
+    #                         self.ctc_token_id_converter.ids2tokens(y)
+    #                     )
+    #                 )
+    #                 hyps_lengths.append(-1) # 傳給 LLM 用的：輸入長度由字串自行決定
+    #             else:
+    #                 hyps.append(y)          # 直接保留 id 序列
+    #                 hyps_lengths.append(y.size(0))
+    #         hyps_lengths = hlens.new(hyps_lengths)  # 轉成跟 hlens 同型態的 tensor
+
+    #     # --- 2. LLM 輸出 ---
+    #     llm_out, llm_out_lengths = self.llm(hyps, hyps_lengths, ys_in_pad, ys_in_lens)
+
+    #     # --- 3. 建立 attention mask ---
+    #     tgt = llm_out
+    #     # (B, T_dec) → (B, 1, T_dec) 的 padding mask，1 表示可 attend
+    #     tgt_mask = (~make_pad_mask(ys_in_lens)[:, None, :]).to(tgt.device)
+    #     # subsequent mask 用來 prevent future peek：(1, T_dec, T_dec)
+    #     m = subsequent_mask(tgt_mask.size(-1), device=tgt_mask.device).unsqueeze(0)
+    #     tgt_mask = tgt_mask & m  # (B, T_dec, T_dec)
+
+    #     memory = hs_pad # (B, T_enc, D)
+    #     memory_mask = (~make_pad_mask(hlens, maxlen=memory.size(1)))[:, None, :].to(
+    #         memory.device
+    #     )
+
+    #     # --- 4. Decoder 前向 ---
+    #     x = self.embed(tgt) # 把 LLM 輸出向量做一次線性嵌入，(B, T_dec, D_model)
+    #     x, tgt_mask, memory, memory_mask = self.decoders(
+    #         x, tgt_mask, memory, memory_mask
+    #     )
+    #     if self.normalize_before:
+    #         x = self.after_norm(x)
+    #     if self.output_layer is not None:
+    #         x = self.output_layer(x)    # 投影到 vocab 大小的 logit
+
+    #     return x, ys_in_lens
+
     def forward(
         self,
         hs_pad: torch.Tensor,      # (B, T_enc, D): encoder output
@@ -1119,11 +1184,8 @@ class LLMGuidedTransformerDecoder(BaseTransformerDecoder):
         # 2. 呼叫 LLM
         #    注意：這邊不動原本的 tgt[:,0] 設定
         llm_out, llm_out_lengths = self.llm.forward_inference(
-        hyps,                          # List[str] 或 List[id_tensor]，CTC 解碼結果
-        hyps_lengths,                  # Tensor(B,)：CTC 解碼長度
-        tgt,                           # Tensor(B, T_dec)：目前的 decoder input tokens
-        tgt.new([tgt.size(1)] * tgt.size(0))  # Tensor(B,)：讓 LLM 知道目前輸入序列長度 = T_dec
-    )
+            hyps, hyps_lengths, tgt, tgt.new([tgt.size(1)] * tgt.size(0))
+        )
 
         # 3. decoder cache 準備
         if cache is None:

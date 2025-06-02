@@ -156,6 +156,18 @@ class LLMGuidedASRModel(AbsESPnetModel):
                         utt_id, prompt_text = line.split(None, 1)
                     self.biasing_words_dict[utt_id] = prompt_text
 
+        # # 假設放在 __init__ 建立完 biasing_words_dict 後
+        # print(f"Biasing dictionary 共有 {len(self.biasing_words_dict)} 個 entries")
+
+        # # 再印出前面 10 筆（如果少於 10 筆就全部印出）
+        # for i, (utt_id, prompt_text) in enumerate(self.biasing_words_dict.items()):
+        #     if i >= 10:
+        #         break
+        #     print(f"{i+1}. {utt_id} --> {prompt_text}")
+        # input("wait")
+
+
+
     def forward(
         self,
         speech: torch.Tensor,

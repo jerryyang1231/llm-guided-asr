@@ -52,7 +52,7 @@ decoder_conf:
 llm: llama
 llm_conf:
     model_name_or_path: "meta-llama/Llama-3.2-1B-Instruct"
-    template_prompt: "[INST] <<SYS>>\n你將看到一段引號內的中文句子。請檢查並糾正其中的錯別字，然後回傳修正後的版本。\n<</SYS>>\n\n請修正 \"((HYP))\" [/INST] 這是修正後的版本：\n\n"
+    template_prompt: "[INST] <<SYS>>\n修正 CTC 句子並保留偏向詞。\n<</SYS>>\nCTC：「((HYP)) 偏向：「((BIAS))」\n[/INST]\n只回傳修正後的完整中文句子，且包含所有偏向詞。\n"
     dtype: "bfloat16"
     cache_dir: "/share/homes/jerryyang/.cache/huggingface"
     pad_token: "<|finetune_right_pad_id|>"
@@ -94,4 +94,4 @@ specaug_conf:
 
 use_wandb: true           
 wandb_project: llm_asr      
-wandb_name: llm_guided_asr_esun+llama3
+wandb_name: llm_guided_asr_esun_contextual_biasing_v2

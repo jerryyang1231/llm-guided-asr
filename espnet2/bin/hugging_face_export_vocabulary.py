@@ -43,7 +43,7 @@ def export_vocabulary(
         p.parent.mkdir(parents=True, exist_ok=True)
         fout = p.open("w", encoding="utf-8")
 
-    tokenizer = AutoTokenizer.from_pretrained(model_name_or_path)
+    tokenizer = AutoTokenizer.from_pretrained(model_name_or_path, trust_remote_code=True,)
     # words = ["" for _ in range(tokenizer.vocab_size)]
     vocab = tokenizer.get_vocab()
     vocab_size = len(vocab)

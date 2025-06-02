@@ -38,7 +38,7 @@ class HuggingFaceTokenizer(AbsTokenizer):
     def _build_tokenizer(self):
         # Build Hugging Face tokenizer lazily.
         if self.tokenizer is None:
-            self.tokenizer = AutoTokenizer.from_pretrained(self.model)
+            self.tokenizer = AutoTokenizer.from_pretrained(self.model, trust_remote_code=True,)
 
     def text2tokens(self, line: str) -> List[str]:
         self._build_tokenizer()

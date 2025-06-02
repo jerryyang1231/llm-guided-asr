@@ -25,7 +25,7 @@ class HuggingFaceTokenIDConverter:
                 " && ./installers/install_transformers.sh`."
             )
 
-        self.tokenizer = AutoTokenizer.from_pretrained(model_name_or_path)
+        self.tokenizer = AutoTokenizer.from_pretrained(model_name_or_path, trust_remote_code=True,)
 
     def get_num_vocabulary_size(self) -> int:
         return self.tokenizer.vocab_size

@@ -84,4 +84,4 @@ specaug_conf:
 
 use_wandb: true           
 wandb_project: llm_asr      
-wandb_name: llm_guided_asr_esun_baseline_reproduce
+wandb_name: llm_guided_asr_esun_baseline
