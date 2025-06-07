@@ -27,8 +27,6 @@ class Llama(AbsLLM):
         dtype: str = "bfloat16",
         cache_dir: str = None,
         pad_token: str = "<unk>",
-        # load_in_8bit: bool = True,
-        # device_map: str = "auto",
     ):
         super().__init__()
 
@@ -45,17 +43,13 @@ class Llama(AbsLLM):
         logging.info(f"cache_dir: {cache_dir}")
 
         self.lm = AutoModelForCausalLM.from_pretrained(
-            model_name_or_path,
-            cache_dir=cache_dir,
-            torch_dtype=dtype,
-            # load_in_8bit=load_in_8bit,
-            # device_map=device_map,
+            model_name_or_path, cache_dir=cache_dir, torch_dtype=dtype
         )
         self.tokenizer = AutoTokenizer.from_pretrained(model_name_or_path)
 
         self.template_prompt = template_prompt
         if template_prompt:
-            # assert "\"((HYP))\"" in template_prompt
+            assert "\"((HYP))\"" in template_prompt
 
             template_prompt_tokens = self.tokenizer.tokenize(template_prompt)
             len_hyp_indicator = 5 if self.is_llama2 else 4

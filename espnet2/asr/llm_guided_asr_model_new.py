@@ -69,9 +69,6 @@ class LLMGuidedASRModel(AbsESPnetModel):
         ###
         is_encoder_eval: bool = True,
         is_llm_eval: bool = True,
-        train_prompt_path="/share/nas169/jerryyang/espnet/egs2/esun/work/dump/raw/train_sp/output.txt",
-        dev_prompt_path="/share/nas169/jerryyang/espnet/egs2/esun/work/dump/raw/dev/output.txt",
-        test_prompt_path="/share/nas169/jerryyang/espnet/egs2/esun/work/dump/raw/test/output.txt",
     ):
         super().__init__()
         assert 0.0 <= ctc_weight <= 1.0, ctc_weight
@@ -136,38 +133,6 @@ class LLMGuidedASRModel(AbsESPnetModel):
 
         self.use_transducer_decoder = False
 
-        self.biasing_words_dict = {}
-        for prompt_file in [train_prompt_path, dev_prompt_path, test_prompt_path]:
-            if prompt_file is None:
-                continue
-            with open(prompt_file, 'r', encoding='utf-8') as f:
-                for raw in f:
-                    line = raw.strip()
-                    if not line:
-                        continue
-
-                    # 如果這一行只有一個字串（也就是沒有任何空白可以拆分），就跳過或設成空字串
-                    if len(line.split()) == 1:
-                        # 這裡代表只有 utt_id 而已，沒有後續 biasing words
-                        utt_id = line
-                        prompt_text = ""  # 或直接 continue, 視需求決定
-                    else:
-                        # 這一行至少有一個空白，能拆出兩部分
-                        utt_id, prompt_text = line.split(None, 1)
-                    self.biasing_words_dict[utt_id] = prompt_text
-
-        # # 假設放在 __init__ 建立完 biasing_words_dict 後
-        # print(f"Biasing dictionary 共有 {len(self.biasing_words_dict)} 個 entries")
-
-        # # 再印出前面 10 筆（如果少於 10 筆就全部印出）
-        # for i, (utt_id, prompt_text) in enumerate(self.biasing_words_dict.items()):
-        #     if i >= 10:
-        #         break
-        #     print(f"{i+1}. {utt_id} --> {prompt_text}")
-        # input("wait")
-
-
-
     def forward(
         self,
         speech: torch.Tensor,
@@ -219,23 +184,19 @@ class LLMGuidedASRModel(AbsESPnetModel):
             stats["loss_ctc"] = loss_ctc.detach() if loss_ctc is not None else None
             stats["cer_ctc"] = cer_ctc
 
-        utt_ids = kwargs.get("utt_id", None)
+        # 取得 batch 中的 utt_id 清單
+        utt_ids = kwargs.get("utt_id", None)  # 假設 DataLoader 有回傳這個欄位
         if utt_ids is not None:
-            biasing_batch = []
-            for uid in utt_ids:
-                # biasing_batch.append(self.biasing_words_dict.get(uid, []))
-                biasing_batch.append(self.biasing_words_dict.get(uid, ""))  # default = ""
-        else:
-            biasing_batch = None
+            # 把整個列表傳給解碼器
+            self.decoder.set_utt_ids(utt_ids)
 
         # Attention
         ys_in_pad, ys_out_pad = add_sos_eos(
             text, self.sos, self.eos, self.ignore_id, pad_input_with_eos=False
         )
         ys_in_lengths = text_lengths + 1
-
         dec_out, dec_out_lengths = self.decoder(
-            enc_out, enc_out_lengths, ys_in_pad, ys_in_lengths, biasing_batch,
+            enc_out, enc_out_lengths, ys_in_pad, ys_in_lengths,
         )
 
         loss_att = self.criterion_att(dec_out, ys_out_pad)

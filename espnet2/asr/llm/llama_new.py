@@ -52,7 +52,6 @@ class Llama(AbsLLM):
         if template_prompt:
             # 先把整個 prompt tokenize 成 token list
             template_prompt_tokens = self.tokenizer.tokenize(template_prompt)
-
             # 我們要找到兩個占位符 ((HYP)) 和 ((BIAS)) 在 token list 裡的位置
             # Llama2 tokenize 會把 "((HYP))" 拆成長度 5 的 tokens，Llama3 則拆成長度 4
             len_hyp_indicator = 5 if self.is_llama2 else 4
@@ -151,7 +150,9 @@ class Llama(AbsLLM):
             lm_in_lengths = []
             for i, hyp in enumerate(hyp_in):
                 # a) CTC hyp 轉 id
-                hyp_ids = self.tokenizer(hyp, return_tensors="pt").input_ids[0][1:].to(res_in_pad.device)
+                hyp_ids = self.tokenizer(
+                    hyp, return_tensors="pt"
+                ).input_ids[0][1:].to(res_in_pad.device) # remove sos
                 # b) bias 轉 id (若為空就給空 tensor)
                 if bias_in[i] != "":
                     bias_ids = self.tokenizer(bias_in[i], return_tensors="pt").input_ids[0][1:].to(res_in_pad.device)
@@ -296,19 +297,25 @@ class Llama(AbsLLM):
 
         return lm_hidden, res_in_lengths
 
-
     def prepare_prompt_for_inference(
         self,
         hyp_in: Union[List[torch.Tensor], List[str]],
         hyp_in_lengths: torch.Tensor,
+        bias_in: List[str],
+        bias_in_lengths: torch.Tensor,
         res_in_pad: torch.Tensor,
         res_in_lengths: torch.Tensor,
     ) -> Tuple[torch.Tensor, torch.Tensor]:
+
+        B = len(hyp_in)
         if self.template_prompt is None:
-            lm_in_pad, lm_in_lengths = res_in_pad, res_in_lengths
+            lm_in, lm_in_lengths = res_in_pad, res_in_lengths
         else:
             prefix_ids = res_in_pad[0].new(
                 self.template_prefix_ids
+            ).repeat(len(hyp_in), 1)
+            middle_ids = res_in_pad[0].new(
+                self.template_middle_ids
             ).repeat(len(hyp_in), 1)
             suffix_ids = res_in_pad[0].new(
                 self.template_suffix_ids
@@ -322,14 +329,30 @@ class Llama(AbsLLM):
             else:
                 hyp_ids = torch.stack(hyp_in)
 
+            # bias 轉 id (若為空就給空 tensor)
+            if bias_in[0] != "":
+                # 先拿單筆的 id（shape [bias_len]）
+                bias_id = self.tokenizer(
+                    bias_in[0], return_tensors="pt"
+                ).input_ids[0][1:].to(res_in_pad.device) # remove sos
+                # 變成 (1, bias_len) 再 repeat → (B, bias_len)
+                bias_ids = bias_id.unsqueeze(0).repeat(B, 1)
+            else:
+                # 先建一個空的一維 tensor，shape = (0,)
+                empty = res_in_pad.new_tensor([], dtype=torch.long)  # shape (0,)
+                # 再改成 (1, 0) 然後 repeat → (B, 0)
+                bias_ids = empty.unsqueeze(0).repeat(B, 1)  # shape = (B, 0)
+
             lm_in = torch.cat(
-                (prefix_ids, hyp_ids, suffix_ids, res_in_pad),
+                (prefix_ids, hyp_ids, middle_ids, bias_ids, suffix_ids, res_in_pad),
                 dim=-1,
             )
             lm_in_lengths = (
-                prefix_ids.size(0)
+                prefix_ids.size(1)
                 + hyp_in_lengths
-                + suffix_ids.size(0)
+                + middle_ids.size(1)
+                + bias_ids.size(1)
+                + suffix_ids.size(1)
                 + res_in_lengths
             )
 
@@ -337,8 +360,10 @@ class Llama(AbsLLM):
 
     def forward_inference(
         self,
-        hyp_in: Union[List[torch.Tensor], List[str]],
-        hyp_in_lengths: torch.Tensor,
+        hyps_ctc: Union[List[torch.Tensor], List[str]],
+        ctc_lengths: torch.Tensor,
+        hyps_bias: List[str],
+        bias_lengths: torch.Tensor,
         res_in_pad: torch.Tensor,
         res_in_lengths: torch.Tensor,
         log_softmax: bool = False,
@@ -346,7 +371,12 @@ class Llama(AbsLLM):
         assert torch.all(res_in_lengths == res_in_lengths[0])
 
         lm_in, lm_in_lengths = self.prepare_prompt_for_inference(
-            hyp_in, hyp_in_lengths, res_in_pad, res_in_lengths
+            hyps_ctc,
+            ctc_lengths,
+            hyps_bias,
+            bias_lengths,
+            res_in_pad,
+            res_in_lengths,
         )
         mask = (~make_pad_mask(lm_in_lengths)).to(lm_in.device).int()
 

@@ -962,6 +962,9 @@ class LLMGuidedTransformerDecoder(BaseTransformerDecoder):
         concat_after: bool = False,
         layer_drop_rate: float = 0.0,
         ctc_vocab_path: Optional[str] = None,
+        train_biasing_words_path="/share/nas169/jerryyang/espnet/egs2/esun/work/dump/raw/train_sp/output.txt",
+        dev_biasing_words_path="/share/nas169/jerryyang/espnet/egs2/esun/work/dump/raw/dev/output.txt",
+        test_biasing_words_path="/share/nas169/jerryyang/espnet/egs2/esun/work/dump/raw/test/output.txt",
     ):
         super().__init__(
             vocab_size=vocab_size,
@@ -1011,70 +1014,36 @@ class LLMGuidedTransformerDecoder(BaseTransformerDecoder):
 
         self.use_cache = False
 
-    # def forward(
-    #     self,
-    #     hs_pad: torch.Tensor,      # (B, T_enc, D): encoder 輸出的隱藏向量 (padding 過)
-    #     hlens: torch.Tensor,       # (B,): 每句的實際長度（encoder）
-    #     ys_in_pad: torch.Tensor,   # (B, T_dec): decoder 的輸入 token id（padding 過）
-    #     ys_in_lens: torch.Tensor,  # (B,): 每句 decoder 輸入的實際長度
-    #     biasing_words: Optional[List[str]] = None,
-    # ) -> Tuple[torch.Tensor, torch.Tensor]:
-    #     B = hs_pad.size(0)
+        self.biasing_words_dict = {}
+        for prompt_file in [train_biasing_words_path, dev_biasing_words_path, test_biasing_words_path]:
+            if prompt_file is None:
+                raise ValueError(f"missing {prompt_file}")
+            with open(prompt_file, 'r', encoding='utf-8') as f:
+                for raw in f:
+                    line = raw.strip()
+                    if not line:
+                        continue
 
-    #     # --- 1. 準備 LLM 輸入文字序列 ---
-    #     if biasing_words is not None:
-    #         assert len(biasing_words) == B, "Length of biasing_words must match batch size"
-    #         hyps = biasing_words
-    #         hyps_lengths = hlens.new([-1] * B)  # -1 = use string length internally by LLM
-    #     else:
-    #         # 原始版本的 CTC 解碼取得 hyps
-    #         lpz = self.ctc.argmax(hs_pad).data  # (B, T_enc)
-    #         hyps = []
-    #         hyps_lengths = []
-    #         for l in lpz:                               # 每個 batch 項目
-    #             y_hat = torch.unique_consecutive(l)     # 去掉連續重複
-    #             y = y_hat[y_hat != 0]                   # 刪除 blank id=0
+                    # 如果這一行只有一個字串（也就是沒有任何空白可以拆分），就跳過或設成空字串
+                    if len(line.split()) == 1:
+                        # 這裡代表只有 utt_id 而已，沒有後續 biasing words
+                        utt_id = line
+                        biasing_words = ""  # 或直接 continue, 視需求決定
+                    else:
+                        # 這一行至少有一個空白，能拆出兩部分
+                        utt_id, biasing_words = line.split(None, 1)
+                    self.biasing_words_dict[utt_id] = biasing_words
 
-    #             if self.ctc_tokenizer is not None:
-    #             # 如果有 tokenizer，先把 id -> token -> 字串
-    #                 hyps.append(
-    #                     self.ctc_tokenizer.tokens2text(
-    #                         self.ctc_token_id_converter.ids2tokens(y)
-    #                     )
-    #                 )
-    #                 hyps_lengths.append(-1) # 傳給 LLM 用的：輸入長度由字串自行決定
-    #             else:
-    #                 hyps.append(y)          # 直接保留 id 序列
-    #                 hyps_lengths.append(y.size(0))
-    #         hyps_lengths = hlens.new(hyps_lengths)  # 轉成跟 hlens 同型態的 tensor
 
-    #     # --- 2. LLM 輸出 ---
-    #     llm_out, llm_out_lengths = self.llm(hyps, hyps_lengths, ys_in_pad, ys_in_lens)
+    def set_utt_ids(self, utt_ids: List[str]):
+        """
+        將批次的 utt_id 清單傳入解碼器內部，以便後續 forward／forward_one_step 使用。
+        utt_ids: List[str]，長度 = batch size，順序對應於該批次樣本順序。
+        """
+        self.utt_ids = utt_ids
 
-    #     # --- 3. 建立 attention mask ---
-    #     tgt = llm_out
-    #     # (B, T_dec) → (B, 1, T_dec) 的 padding mask，1 表示可 attend
-    #     tgt_mask = (~make_pad_mask(ys_in_lens)[:, None, :]).to(tgt.device)
-    #     # subsequent mask 用來 prevent future peek：(1, T_dec, T_dec)
-    #     m = subsequent_mask(tgt_mask.size(-1), device=tgt_mask.device).unsqueeze(0)
-    #     tgt_mask = tgt_mask & m  # (B, T_dec, T_dec)
-
-    #     memory = hs_pad # (B, T_enc, D)
-    #     memory_mask = (~make_pad_mask(hlens, maxlen=memory.size(1)))[:, None, :].to(
-    #         memory.device
-    #     )
-
-    #     # --- 4. Decoder 前向 ---
-    #     x = self.embed(tgt) # 把 LLM 輸出向量做一次線性嵌入，(B, T_dec, D_model)
-    #     x, tgt_mask, memory, memory_mask = self.decoders(
-    #         x, tgt_mask, memory, memory_mask
-    #     )
-    #     if self.normalize_before:
-    #         x = self.after_norm(x)
-    #     if self.output_layer is not None:
-    #         x = self.output_layer(x)    # 投影到 vocab 大小的 logit
-
-    #     return x, ys_in_lens
+    def lookup_bias_words(self, utt_id: str) -> str:
+        return self.biasing_words_dict.get(utt_id, "")
 
     def forward(
         self,
@@ -1082,7 +1051,7 @@ class LLMGuidedTransformerDecoder(BaseTransformerDecoder):
         hlens: torch.Tensor,       # (B,): 每筆 utterance 的 encoder 長度
         ys_in_pad: torch.Tensor,   # (B, T_dec): decoder 輸入（已 pad）
         ys_in_lens: torch.Tensor,  # (B,): decoder 輸入長度
-        biasing_words: Optional[List[str]] = None,
+        # biasing_words: Optional[List[str]] = None,
     ) -> Tuple[torch.Tensor, torch.Tensor]:
         B = hs_pad.size(0)
 
@@ -1108,8 +1077,17 @@ class LLMGuidedTransformerDecoder(BaseTransformerDecoder):
                 ctc_lengths.append(y.size(0))
         ctc_lengths = hlens.new(ctc_lengths)  # 轉成跟 hlens 同型態的 tensor
 
+        # 嘗試從屬性取得 utt_id
+        utt_ids = getattr(self, "utt_id", None)
+        if utt_ids is not None:
+            biasing_batch = []
+            for uid in utt_ids:
+                biasing_batch.append(self.biasing_words_dict.get(uid, ""))  # default = ""
+        else:
+            biasing_batch = None
+
         # LLM 呼叫：hyps_ctc 代表「CTC 解碼文字」；hyps_bias 代表「偏向詞字串」
-        hyps_bias = biasing_words if biasing_words is not None else [""] * B
+        hyps_bias = biasing_batch if biasing_batch is not None else [""] * B
 
         # 統一令所有要丟給 LLM 的長度設為 -1，讓 LLM 內部依「字串長度」自己算
         bias_lengths = hlens.new([-1] * B)  # 偏向詞字串的長度向量（placeholder）
@@ -1153,17 +1131,20 @@ class LLMGuidedTransformerDecoder(BaseTransformerDecoder):
         memory: torch.Tensor,
         cache: List[torch.Tensor] = None,
     ) -> Tuple[torch.Tensor, List[torch.Tensor]]:
-        # 1. 檢查是否有指定 utt_id 的 biasing words
-        # biasing = None
-        # if hasattr(self, "current_utt_id") and getattr(self, "biasing_words_dict", None):
-            # biasing = self.biasing_words_dict.get(self.current_utt_id, None)
+        # 1. 嘗試從屬性取得 utt_id
+        utt_id = getattr(self, "utt_id", None)
+        if utt_id is not None:
+            # 用 utt_id 查出對應的偏置詞字串
+            biasing = self.biasing_words_dict.get(utt_id, "")
 
-        # if biasing is not None:
-        #     # 用 biasing words 直接當 LLM 的輸入
-        #     hyps = [biasing] * tgt.size(0)
-        #     hyps_lengths = tgt.new([-1] * tgt.size(0))  # -1 讓 LLM 自行用字串長度
-        # else:
-        # 原本的 CTC 解碼
+            # 將偏置詞用於 LLM 輸入
+            # 具體方式依你的 LLM 接口而定，以下示意如何傳入
+            hyps_bias = [biasing] * tgt.size(0)  # tgt.size(0) = batch size (通常為 1)
+        else: # 用不到?
+            hyps_bias = [""] * tgt.size(0)
+        bias_lengths = tgt.new([-1] * tgt.size(0)) # -1 讓 LLM 自行用字串長度
+
+        # 2. 原本的 CTC 解碼
         if tgt.size(1) == 1:
             lpz = self.ctc.argmax(memory).data  # (B, T_enc)
 
@@ -1174,17 +1155,22 @@ class LLMGuidedTransformerDecoder(BaseTransformerDecoder):
                 self.hyp = self.ctc_tokenizer.tokens2text(
                     self.ctc_token_id_converter.ids2tokens(self.hyp)
                 )
-        hyps = [self.hyp] * tgt.size(0)
+        hyps_ctc = [self.hyp] * tgt.size(0)
         if self.ctc_tokenizer is not None:
-            hyps_lengths = tgt.new([-1] * tgt.size(0))
+            ctc_lengths = tgt.new([-1] * tgt.size(0))
         else:
-            hyps_lengths = tgt.new([self.hyp.size(0)] * tgt.size(0))
+            ctc_lengths = tgt.new([self.hyp.size(0)] * tgt.size(0))
 
         tgt[:, 0] = self.llm.start_of_response_token_id # Unecessary?
-        # 2. 呼叫 LLM
-        #    注意：這邊不動原本的 tgt[:,0] 設定
+
+        # 呼叫 LLM，將 hyps_bias 傳進去
         llm_out, llm_out_lengths = self.llm.forward_inference(
-            hyps, hyps_lengths, tgt, tgt.new([tgt.size(1)] * tgt.size(0))
+            hyps_ctc,        # CTC 解碼文字
+            ctc_lengths,     # CTC 假設長度
+            hyps_bias,       # biasing words
+            bias_lengths,
+            tgt,             # 解碼器輸入 tokens
+            tgt.new([tgt.size(1)] * tgt.size(0))  # 輸入長度
         )
 
         # 3. decoder cache 準備

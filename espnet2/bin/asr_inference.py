@@ -840,22 +840,23 @@ def inference(
             start_time = time.time()
             logging.info(f"DEBUG: start decoding {keys[0]}")
             assert isinstance(batch, dict), type(batch)
+
+            # keys 裡面就是這個批次的 utterance ID
             assert all(isinstance(s, str) for s in keys), keys
+            key = keys[0]  # 取得這筆輸入的 utt_id
+
             _bs = len(next(iter(batch.values())))
             assert len(keys) == _bs, f"{len(keys)} != {_bs}"
             batch = {k: v[0] for k, v in batch.items() if not k.endswith("_lengths")}
+            
+            # 取得模型的 decoder 實例
+            decoder = speech2text.asr_model.decoder
+            # 將 utt_id 直接設到 decoder 的屬性上
+            decoder.utt_id = key
 
             # N-best list of (text, token, token_int, hyp_object)
             try:
-                # original
                 results = speech2text(**batch)
-                # # --- 注入當前的 utterance ID & biasing dict 給 decoder scorer ---
-                # utt_id = keys[0]
-                # decoder = speech2text.asr_model.decoder
-                # # 確保 decoder 有存 prompt 表
-                # decoder.biasing_words_dict = speech2text.asr_model.biasing_words_dict
-                # decoder.current_utt_id = utt_id
-                # results = speech2text(**batch)
             except TooShortUttError as e:
                 logging.warning(f"Utterance {keys} {e}")
                 hyp = Hypothesis(score=0.0, scores={}, states={}, yseq=[])

@@ -57,8 +57,8 @@ llm_conf:
     cache_dir: "/share/homes/jerryyang/.cache/huggingface"
     pad_token: "<unk>"
     # 量化開關
-    # load_in_8bit: true
-    # device_map: "auto"
+    load_in_8bit: true
+    device_map: "auto"
 
 init_param: [
     "exp/asr_train_asr_conformer_llama2_vocab_raw_en_hugging_face_meta-llama-Llama-2-7b-hf_sp/valid.acc.ave_10best.pth:encoder:encoder",

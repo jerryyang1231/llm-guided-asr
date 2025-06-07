@@ -35,9 +35,9 @@ done
 
 ./asr.sh \
     --lang en \
-    --ngpu 0 \
+    --ngpu 1 \
     --nj 16 \
-    --gpu_inference false \
+    --gpu_inference true \
     --inference_nj 1 \
     --token_type hugging_face \
     --hugging_face_model_name_or_path "${hugging_face_model_name_or_path}" \

@@ -417,5 +417,5 @@ python3 -m caluate_rareword_mer \
 python3 -m caluate_rareword_mer \
     --rareword_list_path "/share/nas169/jerryyang/espnet/egs2/esun/work/local/contextual/rarewords/esun_earningcall.txt" \
     --reference_path "/share/nas169/jerryyang/espnet/egs2/esun/work/dump/raw/test/text_filtered" \
-    --hypothesis_path "/share/nas169/jerryyang/espnet/egs2/esun/work/exp/asr_train_asr+llama3_conformer_raw_zh_hugging_face_meta-llama-Llama-3.2-1B_sp/decode_bs10_ctc0.3_asr_model_valid.acc.ave/test/text_filtered"
+    --hypothesis_path "/share/nas169/jerryyang/espnet/egs2/esun/work/exp/asr_train_asr+llama3_conformer_contextual_biasing_v2_raw_zh_hugging_face_meta-llama-Llama-3.2-1B_sp/decode_bs1_ctc0.3_asr_model_valid.acc.ave/test/text_filtered"
 """

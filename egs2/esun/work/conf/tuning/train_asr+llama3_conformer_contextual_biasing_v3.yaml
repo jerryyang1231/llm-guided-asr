@@ -1,0 +1,99 @@
+batch_type: numel
+# batch_bins: 32000000
+# accum_grad: 2
+batch_bins: 1000000
+accum_grad: 64
+max_epoch: 25
+patience: none
+init: none
+best_model_criterion:
+-   - valid
+    - acc
+    - max
+keep_nbest_models: 10
+
+use_amp: true
+num_att_plot: 0
+
+model: llm_guided_asr
+model_conf:
+    lsm_weight: 0.1
+    length_normalized_loss: false
+    is_encoder_eval: false
+    is_llm_eval: true
+
+encoder: conformer
+encoder_conf:
+    output_size: 256
+    attention_heads: 4
+    linear_units: 1024
+    num_blocks: 12
+    dropout_rate: 0.1
+    positional_dropout_rate: 0.1
+    attention_dropout_rate: 0.1
+    input_layer: conv2d
+    normalize_before: true
+    macaron_style: true
+    rel_pos_type: latest
+    pos_enc_layer_type: rel_pos
+    selfattention_layer_type: rel_selfattn
+    activation_type: swish
+    use_cnn_module: true
+    cnn_module_kernel: 31
+
+decoder: llm_guided_transformer_decoder
+decoder_conf:
+    attention_heads: 4
+    linear_units: 2048
+    num_blocks: 6
+    dropout_rate: 0.1
+    positional_dropout_rate: 0.1
+    self_attention_dropout_rate: 0.1
+    src_attention_dropout_rate: 0.1
+
+llm: llama
+llm_conf:
+    model_name_or_path: "meta-llama/Llama-3.2-1B-Instruct"
+    template_prompt: " [INST] <<SYS>>\n請對輸入的 CTC 輸出句子進行語句修正與校正。根據偏向詞清單，將 CTC 結果中錯誤或遺漏的詞彙替換為清單中的正確詞彙；若清單中某些詞彙與句子無關，則保持原句不動，並確保最終句子自然通順。\n<</SYS>>\nCTC：「((HYP))」\n偏向詞清單：「三道防線, 川普, 中國, 中國人壽, 中壢, 元大, 手收, 日本, 日盛, 毛手收, 世界氣候峰會, 主計處, 北富銀, 半導體五G, 台大, 台新, 台灣, 史密斯, 外幣存放比, 央企, 央行, 市占率, 布里斯本, 民營, 永豐, 永續發展委員會, 玉山, 玉山金控, 玉山wallet, 玉輝, 玉證, 生技股, 企金, 企金法, 先進, 全盈PLUS PAY, 全家, 存放比, 利差, 吳宏斌, 投資法人, 亞洲, 亞洲四小龍, 放款, 東協, 東南亞, 東莞, 松江, 法金, 法說會, 育輝, 花旗, 金管會, 長安, 俄國, 南山, 南山人壽, 南山廣場, 南韓, 拜登, 指數型, 柯治宏, 美林, 美林證券, 美國, 胡志明, 英國, 風險管理委員會, 香港, 個金, 泰國, 消金, 烏克蘭, 紓困振興, 財金處, 財富管理, 財管, 停售效應, 國民旅遊卡, 國泰, 國泰證券, 張智星, 曼谷, 淨手收, 淨手續費, 淨收益, 淨利收, 淨值, 淨提存, 淨零碳排, 深圳, 清華, 終端消費, 許誠洲, 貨幣政策, 通貨膨脹, 陳美滿, 雪梨, 創投, 場景金融, 富比士, 富邦, 智金, 智能金融處, 智慧金融, 殖利率, 稅後盈餘, 稅後淨利, 統一, 華南, 華爾街, 越南, 黃男州, 新加坡, 溫學華, 瑞士信貸, 經濟成長率, 裕民, 資本適足率, 逾放比, 道瓊永續指數, 預放, 預期放款比率, 熔斷, 福岡, 綠色金融, 增資緘默期, 廣州, 摩根大通, 數位轉型, 數金處, 歐洲, 澳洲, 聯合國, 聯貸, 聯準會, 謝冠仁, 斷鏈, 雙重槓桿比率, 離岸風電, 曝險, 關聯稅制, AC, AO, Apple, Asiamoney, AUM, ban sanction, basis point, Best Managed Company in Asia, BIS Ratio, BOA, BP, BP, BU, buy now pay later, C I Ratio, capital gain, CAR Ratio, Carrefour家樂福, CEO, CI ratio, consumer banking, corporate banking, corporate governance Asia, cost funding, cost income ratio, Coverage Ratio, covid nineteen, CPI, CSR, current ratio, customer oriented, data driven, DCI, depends on, DJSI, DPS, e Fingo, E指貸, EPN, EPS, ESG, fair value, FED, fee income, fifty fifty, Finance Asia, financial consultant, Fixed Income, forbes bank, Formosa bond, FVOCI, FVPL, FX, GDP, GIV, Global Finance, GP, GPS, GRI, GRM, high base, high single digit, holding company, IBC, ICU, IDC, IF, IHS, IMF, IMO國際海事組織, INF, inflation rate, IP, IPO, IR, IRD, IT, ITE, ixml, Jasons market, joseph, JP, KGI, KPI, KYC, Large Corporate, LDR, LTV, Magi, mark to market, market share, MGM, MMA, Mobile Banking, morgan stanley jp, Mortgage, mortgage loan, MSCI ESG Ratings, MSEI, NCD, Net Profit, net revenue, NIM, NPL Ratio, OBU, OCD, OCI, OPEC, operating cost, operating expense, OSU, other income, PBU, PCHOME, pi信用卡, pi錢包, PMI, PML, powerpoint, price in, prime banking, private banker, PS ratio, PVC, Q one, RE一百, risk management, RM, ROA, ROE, S&P, SASB, SBT, SDT, SME, SMP Global, so not so good, SOP, Spread, straight bond, SU, supply chain, Sustainalytics, SWAP, TCFD, the Asian Banker, the banker, twA Plus, UBear, UBF, UBS, UPC, VC, VOA, VP, wealth management, Year to date, YOY」\n[/INST]\n只回傳修正後的完整中文句子。"
+    dtype: "bfloat16"
+    cache_dir: "/share/homes/jerryyang/.cache/huggingface"
+    pad_token: "<|finetune_right_pad_id|>"
+
+init_param: [
+    "exp/asr_train_asr_conformer_llama3_vocab_raw_zh_hugging_face_meta-llama-Llama-3.2-1B_sp/valid.acc.ave_10best.pth:encoder:encoder",
+    "exp/asr_train_asr_conformer_llama3_vocab_raw_zh_hugging_face_meta-llama-Llama-3.2-1B_sp/valid.acc.ave_10best.pth:ctc:ctc",
+]
+
+freeze_param: [
+    "encoder",
+    "ctc",
+    "decoder.llm.lm",
+]
+
+optim: adam
+optim_conf:
+    lr: 0.002
+    weight_decay: 0.000001
+scheduler: warmuplr
+scheduler_conf:
+    warmup_steps: 25000
+
+specaug: specaug
+specaug_conf:
+    apply_time_warp: true
+    time_warp_window: 5
+    time_warp_mode: bicubic
+    apply_freq_mask: true
+    freq_mask_width_range:
+    - 0
+    - 27
+    num_freq_mask: 2
+    apply_time_mask: true
+    time_mask_width_ratio_range:
+    - 0.
+    - 0.05
+    num_time_mask: 5
+
+use_wandb: true
+wandb_project: llm_asr
+wandb_name: llm_guided_asr_esun_contextual_biasing_v3

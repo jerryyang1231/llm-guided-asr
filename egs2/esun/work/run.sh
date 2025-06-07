@@ -22,7 +22,8 @@ test_sets="test dev"
 # asr_config=conf/tuning/train_asr_conformer_llama2_vocab.yaml
 # asr_config=conf/tuning/train_asr_conformer_llama3_vocab.yaml
 # asr_config=conf/tuning/train_asr+llama3_conformer.yaml
-asr_config=conf/tuning/train_asr+llama3_conformer_contextual_biasing_v2.yaml
+# asr_config=conf/tuning/train_asr+llama3_conformer_contextual_biasing_v2.yaml
+asr_config=conf/tuning/train_asr+llama3_conformer_contextual_biasing_v3.yaml
 
 inference_config=conf/tuning/decode_bs1_ctc0.3.yaml
 
